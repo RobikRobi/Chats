@@ -30,11 +30,13 @@ async def join_chat(chat_id: uuid.UUID = Path(...),
    chat_result = await session.execute(select(Chat).where(Chat.chat_id == chat_id))
    if not chat_result:
       raise HTTPException(status_code=404, detail=f"Chat with id {chat_id} not found")
-   user_chat_result = session.execute(
+   user_chat_result = await session.execute(
       select(UserChat).where(
          UserChat.user_id == current_user.id, 
          UserChat.chat_id == chat_id))
-   if user_chat_result:
+   user_chat = user_chat_result.scalar_one_or_none()
+   
+   if user_chat:
       raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already in this chat"
         )
